@@ -1,0 +1,12 @@
+#!/bin/bash
+# Set the variables
+AWS_DEFAULT_REGION=us-west-2
+BUCKET_NAME=chorme-chris-2021
+# Get AWS account ID
+ID=$(aws sts get-caller-identity | jq -r '.["Account"]')
+
+aws ecr get-login-password | docker login --username AWS --password-stdin ${ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
+docker build -t chrome .
+docker tag chrome:latest ${ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/chrome:latest
+docker push ${ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/chrome:latest
+aws lambda update-function-code --function-name chrome --image-uri ${ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/chrome:latest
